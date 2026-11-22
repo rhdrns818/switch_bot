@@ -1,0 +1,47 @@
+name: ESP32-C3 SwitchBot CI
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  # [1단계] Cppcheck 정적 코드 분석
+  static-analysis:
+    name: Static Analysis (Cppcheck)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Cppcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cppcheck
+
+      - name: Run Cppcheck
+        run: |
+          cppcheck \
+            --enable=warning,style,performance,portability \
+            --inconclusive \
+            --suppress=missingIncludeSystem \
+            --error-exitcode=1 \
+            main/
+
+  # [2단계] ESP32-C3 펌웨어 클라우드 빌드
+  build-firmware:
+    name: Build ESP32-C3 Firmware
+    needs: static-analysis # 정적 분석 통과 시에만 빌드 수행
+    runs-on: ubuntu-latest
+    container:
+      image: espressif/idf:latest # 로컬 ESP-IDF 버전에 맞춰 v5.3 등으로 고정 가능
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set Target & Build
+        run: |
+          . $IDF_PATH/export.sh
+          idf.py set-target esp32c3
+          idf.py build
