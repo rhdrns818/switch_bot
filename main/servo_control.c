@@ -1,11 +1,4 @@
 #include "servo_control.h"
-#include "driver/ledc.h"
-
-#define SERVO_LEDC_MODE       LEDC_LOW_SPEED_MODE
-#define SERVO_LEDC_TIMER      LEDC_TIMER_0
-#define SERVO_LEDC_CHANNEL    LEDC_CHANNEL_0
-#define SERVO_LEDC_FREQ_HZ    50
-#define SERVO_LEDC_RESOLUTION LEDC_TIMER_14_BIT
 
 uint32_t servo_angle_to_duty(int angle) {
     // 1. 경계값 클램핑 (방어적 프로그래밍: 기구물 파손 방지)
@@ -24,6 +17,17 @@ uint32_t servo_angle_to_duty(int angle) {
 
     return duty;
 }
+
+#ifdef ESP_PLATFORM
+#include "driver/ledc.h"
+
+#define SERVO_LEDC_MODE       LEDC_LOW_SPEED_MODE
+#define SERVO_LEDC_TIMER      LEDC_TIMER_0
+#define SERVO_LEDC_CHANNEL    LEDC_CHANNEL_0
+#define SERVO_LEDC_FREQ_HZ    50
+#define SERVO_LEDC_RESOLUTION LEDC_TIMER_14_BIT
+
+
 
 esp_err_t servo_init(int gpio_num) {
     // 1. LEDC 타이머 설정 (50Hz, 14-bit)
@@ -60,3 +64,4 @@ esp_err_t servo_set_angle(int angle) {
     }
     return ledc_update_duty(SERVO_LEDC_MODE, SERVO_LEDC_CHANNEL);
 }
+#endif // ESP_PLATFORM

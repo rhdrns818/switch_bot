@@ -2,7 +2,9 @@
 #define SERVO_CONTROL_H
 
 #include <stdint.h>
+#ifdef ESP_PLATFORM
 #include "esp_err.h"
+#endif
 
 #define SERVO_MIN_ANGLE       0
 #define SERVO_MAX_ANGLE       180
@@ -14,8 +16,11 @@
 // 순수 연산 함수 (단위 테스트 대상)
 uint32_t servo_angle_to_duty(int angle);
 
+#ifdef ESP_PLATFORM
 // 하드웨어 제어 함수 (LEDC 연동)
 esp_err_t servo_init(int gpio_num);
 esp_err_t servo_set_angle(int angle);
 
 #endif // SERVO_CONTROL_H
+
+#endif

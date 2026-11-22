@@ -29,7 +29,31 @@ jobs:
             --error-exitcode=1 \
             main/
 
-  # [2단계] ESP32-C3 펌웨어 클라우드 빌드
+  # [2단계] Host-based Unity 단위 테스트
+  unit-test:
+    name: Host Unit Tests (Unity + GCC)
+    needs: static-analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch Unity Framework
+        run: |
+          git clone --depth 1 https://github.com/ThrowTheSwitch/Unity.git /tmp/unity
+
+      - name: Compile and Run Unit Tests
+        run: |
+          gcc -Wall -Wextra -Werror \
+            -I/tmp/unity/src -Imain \
+            /tmp/unity/src/unity.c \
+            main/switch_parser.c \
+            main/servo_control.c \
+            test/test_host.c \
+            -o test_runner
+          ./test_runner
+
+  # [3단계] ESP32-C3 펌웨어 클라우드 빌드
   build-firmware:
     name: Build ESP32-C3 Firmware
     needs: static-analysis # 정적 분석 통과 시에만 빌드 수행
